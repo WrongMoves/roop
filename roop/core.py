@@ -164,8 +164,8 @@ def start() -> None:
             return
     # process image to image
     if has_image_extension(roop.globals.target_path):
-        if predict_image(roop.globals.target_path) > 0.85:
-            destroy()
+        # if predict_image(roop.globals.target_path) > 0.85:
+        #   destroy()
         # todo: this needs a temp path for images to work with multiple frame processors
         for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
             update_status('Progressing...', frame_processor.NAME)
@@ -177,9 +177,9 @@ def start() -> None:
             update_status('Processing to image failed!')
         return
     # process image to videos
-    seconds, probabilities = predict_video_frames(video_path=roop.globals.target_path, frame_interval=100)
-    if any(probability > 0.85 for probability in probabilities):
-        destroy()
+    # seconds, probabilities = predict_video_frames(video_path=roop.globals.target_path, frame_interval=100)
+    # if any(probability > 0.85 for probability in probabilities):
+    #    destroy()
     update_status('Creating temp resources...')
     create_temp(roop.globals.target_path)
     update_status('Extracting frames...')
