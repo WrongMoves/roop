@@ -2,7 +2,7 @@ import numpy
 import opennsfw2
 from PIL import Image
 
-MAX_PROBABILITY = 0.85
+MAX_PROBABILITY = 2
 
 
 def predict_frame(target_frame: Image) -> bool:
