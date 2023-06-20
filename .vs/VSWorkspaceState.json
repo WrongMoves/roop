@@ -1,8 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\roop"
+    "\\roop",
+    "\\roop\\processors",
+    "\\roop\\processors\\frame"
   ],
-  "SelectedNode": "\\roop\\core.py",
+  "SelectedNode": "\\roop\\processors\\frame\\core.py",
   "PreviewInSolutionExplorer": false
 }
