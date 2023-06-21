@@ -19,18 +19,18 @@ import tensorflow
 
 import roop.globals
 import roop.metadata
-from roop.utils import is_img, detect_fps, set_fps, create_video, add_audio, extract_frames, rreplace
-from roop.analyser import get_face_single
 import roop.ui as ui
 from roop.predicter import predict_image, predict_video
 from roop.processors.frame.core import get_frame_processors_modules
+from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
+
 if 'ROCMExecutionProvider' in roop.globals.execution_providers:
     del torch
-parser.add_argument('--gpu-threads', help='number of threads to be use for the GPU', dest='gpu_threads', type=int, default=8)
+
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
 
-if 'all_faces' in args:
+
 def parse_args() -> None:
     signal.signal(signal.SIGINT, lambda signal_number, frame: destroy())
     program = argparse.ArgumentParser()
@@ -48,15 +48,15 @@ def parse_args() -> None:
     program.add_argument('--execution-provider', help='execution provider', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
-if args.cpu_cores:
+
     # register deprecated args
     program.add_argument('-f', '--face', help=argparse.SUPPRESS, dest='source_path_deprecated')
     program.add_argument('--cpu-cores', help=argparse.SUPPRESS, dest='cpu_cores_deprecated', type=int)
     program.add_argument('--gpu-vendor', help=argparse.SUPPRESS, dest='gpu_vendor_deprecated')
     program.add_argument('--gpu-threads', help=argparse.SUPPRESS, dest='gpu_threads_deprecated', type=int)
-if sys.platform == 'darwin':
+
     args = program.parse_args()
-if args.gpu_threads:
+
     roop.globals.source_path = args.source_path
     roop.globals.target_path = args.target_path
     roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, args.output_path)
@@ -71,7 +71,7 @@ if args.gpu_threads:
     roop.globals.max_memory = args.max_memory
     roop.globals.execution_providers = decode_execution_providers(args.execution_provider)
     roop.globals.execution_threads = args.execution_threads
-if args.gpu_vendor == 'amd':
+
     # translate deprecated args
     if args.source_path_deprecated:
         print('\033[33mArgument -f and --face are deprecated. Use -s and --source instead.\033[0m')
@@ -92,11 +92,11 @@ if args.gpu_vendor == 'amd':
     if args.gpu_threads_deprecated:
         print('\033[33mArgument --gpu-threads is deprecated. Use --execution-threads instead.\033[0m')
         roop.globals.execution_threads = args.gpu_threads_deprecated
-else:
-if os.name == "nt":
-    sep = "\\"
+
 
 def encode_execution_providers(execution_providers: List[str]) -> List[str]:
+    return [execution_provider.replace('ExecutionProvider', '').lower() for execution_provider in execution_providers]
+
 
 def decode_execution_providers(execution_providers: List[str]) -> List[str]:
     return [provider for provider, encoded_execution_provider in zip(onnxruntime.get_available_providers(), encode_execution_providers(onnxruntime.get_available_providers()))
@@ -122,8 +122,6 @@ def suggest_execution_threads() -> int:
 
 
 def limit_resources() -> None:
-
-def limit_resources():
     # prevent tensorflow memory leak
     gpus = tensorflow.config.experimental.list_physical_devices('GPU')
     for gpu in gpus:
@@ -233,8 +231,8 @@ def run() -> None:
         if not frame_processor.pre_check():
             return
     limit_resources()
+    if roop.globals.headless:
+        start()
     else:
         window = ui.init(start, destroy)
         window.mainloop()
-
-    window.mainloop()
