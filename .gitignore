@@ -2,3 +2,7 @@
 models
 temp
 __pycache__
+*.vsidx
+*.pth
+.vs/roop/FileContentIndex/read.lock
+.vs/slnx.sqlite
