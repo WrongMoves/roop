@@ -1,4 +1,5 @@
 import os
+from posixpath import splitext
 import webbrowser
 import customtkinter as ctk
 from typing import Callable, Tuple
@@ -161,8 +162,8 @@ def select_target_path() -> None:
 
 def select_output_path(start: Callable[[], None]) -> None:
     global RECENT_DIRECTORY_OUTPUT
-    source_name = os.path.splitext(roop.globals.source_path)[0]
-    target_name = os.path.splitext(roop.globals.target_path)[0]
+    source_name = os.path.splitext(os.path.basename(roop.globals.source_path))[0]
+    target_name = os.path.splitext(os.path.basename(roop.globals.target_path))[0]
 
     if is_image(roop.globals.target_path):
         initial_file = source_name + '_' + target_name + '.png'
