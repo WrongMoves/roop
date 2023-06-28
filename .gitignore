@@ -5,3 +5,5 @@ __pycache__
 *.vsidx
 *.pth
 .vs\*
+.vs/slnx.sqlite
+.vs/slnx.sqlite
