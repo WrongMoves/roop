@@ -15,11 +15,9 @@ Users of this software are expected to use this software responsibly while abidi
 
 **Issues regarding installation will be closed from now on, we cannot handle the amount of requests.**
 
-There are two types of installations: basic and gpu-powered.
-
 - **Basic:** It is more likely to work on your computer but it will also be very slow. You can follow instructions for the basic install [here](https://github.com/s0md3v/roop/wiki/1.-Installation).
 
-- **GPU:** If you have a good GPU and are ready for solving any software issues you may face, you can enable GPU which is wayyy faster. To do this, first follow the basic install instructions given above and then follow GPU-specific instructions [here](https://github.com/s0md3v/roop/wiki/2.-GPU-Acceleration).
+- **Acceleration:** If you have a good GPU and are ready for solving any software issues you may face, you can enable GPU which is wayyy faster. To do this, first follow the basic install instructions given above and then follow GPU-specific instructions [here](https://github.com/s0md3v/roop/wiki/2.-Acceleration).
 
 ## How do I use it?
 > Note: When you run this program for the first time, it will download some models ~300MB in size.
@@ -38,16 +36,43 @@ options:
   -t TARGET_PATH, --target TARGET_PATH                     select an target image or video
   -o OUTPUT_PATH, --output OUTPUT_PATH                     select output file or directory
   --frame-processor FRAME_PROCESSOR [FRAME_PROCESSOR ...]  frame processors (choices: face_swapper, face_enhancer, ...)
-  --keep-fps                                               keep original fps
-  --keep-audio                                             keep original audio
+  --keep-fps                                               keep target fps
   --keep-frames                                            keep temporary frames
+  --skip-audio                                             skip target audio
   --many-faces                                             process every face
   --video-encoder {libx264,libx265,libvpx-vp9}             adjust output video encoder
   --video-quality [0-51]                                   adjust output video quality
   --max-memory MAX_MEMORY                                  maximum amount of RAM in GB
-  --execution-provider {cpu} [{cpu} ...]                   available execution provider (choices: cpu, ...)
+  --execution-provider {coreml,cpu} [{coreml,cpu} ...]     available execution provider (choices: cpu, ...)
   --execution-threads EXECUTION_THREADS                    number of execution threads
   -v, --version                                            show program's version number and exit
+  --video-quality VIDEO_QUALITY
+                        adjust output video quality
+  --max-memory MAX_MEMORY
+                        maximum amount of RAM in GB
+  --execution-provider {cpu,...} [{cpu,...} ...]
+                        execution provider
+  --execution-threads EXECUTION_THREADS
+                        number of execution threads
+  -v, --version         show program's version number and exit
+  --video-quality VIDEO_QUALITY
+                        adjust output video quality
+  --max-memory MAX_MEMORY
+                        maximum amount of RAM in GB
+  --execution-provider {cpu,...} [{cpu,...} ...]
+                        execution provider
+  --execution-threads EXECUTION_THREADS
+                        number of execution threads
+  -v, --version         show program's version number and exit
+  --video-quality VIDEO_QUALITY
+                        adjust output video quality
+  --max-memory MAX_MEMORY
+                        maximum amount of RAM in GB
+  --execution-provider {cpu,...} [{cpu,...} ...]
+                        execution provider
+  --execution-threads EXECUTION_THREADS
+                        number of execution threads
+  -v, --version         show program's version number and exit
 ```
 
 Looking for a CLI mode? Using the -s/--source argument will make the run program in cli mode.
