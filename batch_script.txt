@@ -1,0 +1,5 @@
+@ECHO OFF
+for %%f in (target\*.gif) do (
+  py run.py -s="src.jpg" -t="%%f" -o="output\%%~nf.gif" --keep-frames
+  ffmpeg -framerate 24 -i "target\temp\%%~nf\%%04d.png" -vf "scale=1080:-1:flags=lanczos" output\%%~nf.gif -y
+)
