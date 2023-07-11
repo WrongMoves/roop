@@ -10,3 +10,5 @@ __pycache__
 .vs/VSWorkspaceState.json
 .vs/roop/v17/.wsuo
 .vs/slnx.sqlite
+.vs/roop/v17/.wsuo
+*.sqlite
