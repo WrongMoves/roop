@@ -20,7 +20,7 @@ import tensorflow
 import roop.globals
 import roop.metadata
 import roop.ui as ui
-from roop.predicter import predict_image, predict_video
+from roop.predictor import predict_image, predict_video
 from roop.processors.frame.core import get_frame_processors_modules
 from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
 
@@ -56,9 +56,9 @@ def parse_args() -> None:
 
     roop.globals.source_path = args.source_path
     roop.globals.target_path = args.target_path
-    roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, args.output_path)
+    roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, args.output_path)  # type: ignore
+    roop.globals.headless = roop.globals.source_path and roop.globals.target_path and roop.globals.output_path
     roop.globals.frame_processors = args.frame_processor
-    roop.globals.headless = args.source_path or args.target_path or args.output_path
     roop.globals.keep_fps = args.keep_fps
     roop.globals.keep_frames = args.keep_frames
     roop.globals.skip_audio = args.skip_audio
@@ -156,6 +156,7 @@ def start() -> None:
             frame_processor.process_image(roop.globals.source_path, roop.globals.output_path, roop.globals.output_path)
             frame_processor.post_process()
             release_resources()
+        # validate
         if is_image(roop.globals.target_path):
             update_status('Processing to image succeed!')
         else:
@@ -176,12 +177,12 @@ def start() -> None:
         release_resources()
     # handles fps
     if roop.globals.keep_fps:
-        update_status('Detecting fps...')
+        update_status('Detecting FPS...')
         fps = detect_fps(roop.globals.target_path)
-        update_status(f'Creating video with {fps} fps...')
+        update_status(f'Creating video with {fps} FPS...')
         create_video(roop.globals.target_path, fps)
     else:
-        update_status('Creating video with 30.0 fps...')
+        update_status('Creating video with 30 FPS...')
         create_video(roop.globals.target_path)
     # handle audio
     if roop.globals.skip_audio:
