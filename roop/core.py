@@ -15,6 +15,8 @@ import shutil
 import argparse
 import torch
 import onnxruntime
+if not 'CUDAExecutionProvider' in onnxruntime.get_available_providers():
+    del torch
 import tensorflow
 
 import roop.globals
@@ -23,9 +25,6 @@ import roop.ui as ui
 from roop.predictor import predict_image, predict_video
 from roop.processors.frame.core import get_frame_processors_modules
 from roop.utilities import has_image_extension, is_image, is_video, detect_fps, create_video, extract_frames, get_temp_frame_paths, restore_audio, create_temp, move_temp, clean_temp, normalize_output_path
-
-if 'ROCMExecutionProvider' in roop.globals.execution_providers:
-    del torch
 
 warnings.filterwarnings('ignore', category=FutureWarning, module='insightface')
 warnings.filterwarnings('ignore', category=UserWarning, module='torchvision')
@@ -44,10 +43,12 @@ def parse_args() -> None:
     program.add_argument('--many-faces', help='process every face', dest='many_faces', action='store_true')
     program.add_argument('--reference-face-position', help='position of the reference face', dest='reference_face_position', type=int, default=0)
     program.add_argument('--reference-frame-number', help='number of the reference frame', dest='reference_frame_number', type=int, default=0)
-    program.add_argument('--similar-face-distance', help='face distance used for recognition', dest='similar_face_distance', type=float, default=1.5)
-    program.add_argument('--video-encoder', help='adjust output video encoder', dest='video_encoder', default='libx264', choices=['libx264', 'libx265', 'libvpx-vp9'])
-    program.add_argument('--video-quality', help='adjust output video quality', dest='video_quality', type=int, default=18, choices=range(52), metavar='[0-51]')
-    program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int, default=suggest_max_memory())
+    program.add_argument('--similar-face-distance', help='face distance used for recognition', dest='similar_face_distance', type=float, default=0.85)
+    program.add_argument('--temp-frame-format', help='image format used for frame extraction', dest='temp_frame_format', default='png', choices=['jpg', 'png'])
+    program.add_argument('--temp-frame-quality', help='image quality used for frame extraction', dest='temp_frame_quality', type=int, default=0, choices=range(32), metavar='[0-31]')
+    program.add_argument('--output-video-encoder', help='encoder used for the output video', dest='output_video_encoder', default='libx264', choices=['libx264', 'libx265', 'libvpx-vp9'])
+    program.add_argument('--output-video-quality', help='quality used for the output video', dest='output_video_quality', type=int, default=18, choices=range(52), metavar='[0-51]')
+    program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int)
     program.add_argument('--execution-provider', help='available execution provider (choices: cpu, ...)', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
@@ -66,8 +67,10 @@ def parse_args() -> None:
     roop.globals.reference_face_position = args.reference_face_position
     roop.globals.reference_frame_number = args.reference_frame_number
     roop.globals.similar_face_distance = args.similar_face_distance
-    roop.globals.video_encoder = args.video_encoder
-    roop.globals.video_quality = args.video_quality
+    roop.globals.temp_frame_format = args.temp_frame_format
+    roop.globals.temp_frame_quality = args.temp_frame_quality
+    roop.globals.output_video_encoder = args.output_video_encoder
+    roop.globals.output_video_quality = args.output_video_quality
     roop.globals.max_memory = args.max_memory
     roop.globals.execution_providers = decode_execution_providers(args.execution_provider)
     roop.globals.execution_threads = args.execution_threads
@@ -82,22 +85,14 @@ def decode_execution_providers(execution_providers: List[str]) -> List[str]:
             if any(execution_provider in encoded_execution_provider for execution_provider in execution_providers)]
 
 
-def suggest_max_memory() -> int:
-    if platform.system().lower() == 'darwin':
-        return 4
-    return 16
-
-
 def suggest_execution_providers() -> List[str]:
     return encode_execution_providers(onnxruntime.get_available_providers())
 
 
 def suggest_execution_threads() -> int:
-    if 'DmlExecutionProvider' in roop.globals.execution_providers:
-        return 1
-    if 'ROCMExecutionProvider' in roop.globals.execution_providers:
-        return 1
-    return 8
+    if 'CUDAExecutionProvider' in onnxruntime.get_available_providers():
+        return 8
+    return 1
 
 
 def limit_resources() -> None:
@@ -119,11 +114,6 @@ def limit_resources() -> None:
         else:
             import resource
             resource.setrlimit(resource.RLIMIT_DATA, (memory, memory))
-
-
-def release_resources() -> None:
-    if 'CUDAExecutionProvider' in roop.globals.execution_providers:
-        torch.cuda.empty_cache()
 
 
 def pre_check() -> bool:
@@ -151,12 +141,12 @@ def start() -> None:
         if predict_image(roop.globals.target_path):
             destroy()
         shutil.copy2(roop.globals.target_path, roop.globals.output_path)
+        # process frame
         for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
             update_status('Progressing...', frame_processor.NAME)
             frame_processor.process_image(roop.globals.source_path, roop.globals.output_path, roop.globals.output_path)
             frame_processor.post_process()
-            release_resources()
-        # validate
+        # validate image
         if is_image(roop.globals.target_path):
             update_status('Processing to image succeed!')
         else:
@@ -165,19 +155,28 @@ def start() -> None:
     # process image to videos
     if predict_video(roop.globals.target_path):
         destroy()
-    update_status('Creating temp resources...')
+    update_status('Creating temporary resources...')
     create_temp(roop.globals.target_path)
-    update_status('Extracting frames...')
-    extract_frames(roop.globals.target_path)
-    temp_frame_paths = get_temp_frame_paths(roop.globals.target_path)
-    for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
-        update_status('Progressing...', frame_processor.NAME)
-        frame_processor.process_video(roop.globals.source_path, temp_frame_paths)
-        frame_processor.post_process()
-        release_resources()
-    # handles fps
+    # extract frames
     if roop.globals.keep_fps:
-        update_status('Detecting FPS...')
+        fps = detect_fps(roop.globals.target_path)
+        update_status(f'Extracting frames with {fps} FPS...')
+        extract_frames(roop.globals.target_path, fps)
+    else:
+        update_status('Extracting frames with 30 FPS...')
+        extract_frames(roop.globals.target_path)
+    # process frame
+    temp_frame_paths = get_temp_frame_paths(roop.globals.target_path)
+    if temp_frame_paths:
+        for frame_processor in get_frame_processors_modules(roop.globals.frame_processors):
+            update_status('Progressing...', frame_processor.NAME)
+            frame_processor.process_video(roop.globals.source_path, temp_frame_paths)
+            frame_processor.post_process()
+    else:
+        update_status('Frames not found...')
+        return
+    # create video
+    if roop.globals.keep_fps:
         fps = detect_fps(roop.globals.target_path)
         update_status(f'Creating video with {fps} FPS...')
         create_video(roop.globals.target_path, fps)
@@ -194,8 +193,10 @@ def start() -> None:
         else:
             update_status('Restoring audio might cause issues as fps are not kept...')
         restore_audio(roop.globals.target_path, roop.globals.output_path)
-    # clean and validate
+    # clean temp
+    update_status('Cleaning temporary resources...')
     clean_temp(roop.globals.target_path)
+    # validate video
     if is_video(roop.globals.target_path):
         update_status('Processing to video succeed!')
     else:

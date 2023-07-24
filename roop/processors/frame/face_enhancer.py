@@ -6,7 +6,7 @@ from gfpgan.utils import GFPGANer
 import roop.globals
 import roop.processors.frame.core
 from roop.core import update_status
-from roop.face_analyser import get_one_face
+from roop.face_analyser import get_many_faces
 from roop.typing import Frame, Face
 from roop.utilities import conditional_download, resolve_relative_path, is_image, is_video
 
@@ -22,7 +22,7 @@ def get_face_enhancer() -> Any:
     with THREAD_LOCK:
         if FACE_ENHANCER is None:
             model_path = resolve_relative_path('../models/GFPGANv1.4.pth')
-            # todo: set models path https://github.com/TencentARC/GFPGAN/issues/399
+            # todo: set models path -> https://github.com/TencentARC/GFPGAN/issues/399
             FACE_ENHANCER = GFPGANer(model_path=model_path, upscale=1, device=get_device())
     return FACE_ENHANCER
 
@@ -58,19 +58,30 @@ def post_process() -> None:
     clear_face_enhancer()
 
 
-def enhance_face(temp_frame: Frame) -> Frame:
-    with THREAD_SEMAPHORE:
-        _, _, temp_frame = get_face_enhancer().enhance(
-            temp_frame,
-            paste_back=True
-        )
+def enhance_face(target_face: Face, temp_frame: Frame) -> Frame:
+    start_x, start_y, end_x, end_y = map(int, target_face['bbox'])
+    padding_x = int((end_x - start_x) * 0.5)
+    padding_y = int((end_y - start_y) * 0.5)
+    start_x = max(0, start_x - padding_x)
+    start_y = max(0, start_y - padding_y)
+    end_x = max(0, end_x + padding_x)
+    end_y = max(0, end_y + padding_y)
+    temp_face = temp_frame[start_y:end_y, start_x:end_x]
+    if temp_face.size:
+        with THREAD_SEMAPHORE:
+            _, _, temp_face = get_face_enhancer().enhance(
+                temp_face,
+                paste_back=True
+            )
+        temp_frame[start_y:end_y, start_x:end_x] = temp_face
     return temp_frame
 
 
 def process_frame(source_face: Face, reference_face: Face, temp_frame: Frame) -> Frame:
-    target_face = get_one_face(temp_frame)
-    if target_face:
-        temp_frame = enhance_face(temp_frame)
+    many_faces = get_many_faces(temp_frame)
+    if many_faces:
+        for target_face in many_faces:
+            temp_frame = enhance_face(target_face, temp_frame)
     return temp_frame
 
 

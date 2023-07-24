@@ -2,7 +2,8 @@ import os
 import sys
 import webbrowser
 import customtkinter as ctk
-from typing import Callable, Tuple, Optional
+from tkinterdnd2 import TkinterDnD, DND_ALL
+from typing import Any, Callable, Tuple, Optional
 import cv2
 from PIL import Image, ImageOps
 
@@ -34,6 +35,13 @@ target_label = None
 status_label = None
 
 
+# todo: remove by native support -> https://github.com/TomSchimansky/CustomTkinter/issues/934
+class CTk(ctk.CTk, TkinterDnD.DnDWrapper):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self.TkdndVersion = TkinterDnD._require(self)
+
+
 def init(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.CTk:
     global ROOT, PREVIEW
 
@@ -50,19 +58,23 @@ def create_root(start: Callable[[], None], destroy: Callable[[], None]) -> ctk.C
     ctk.set_appearance_mode('system')
     ctk.set_default_color_theme(resolve_relative_path('ui.json'))
 
-    root = ctk.CTk()
+    root = CTk()
     root.minsize(ROOT_WIDTH, ROOT_HEIGHT)
     root.title(f'{roop.metadata.name} {roop.metadata.version}')
     root.configure()
     root.protocol('WM_DELETE_WINDOW', lambda: destroy())
 
-    source_label = ctk.CTkLabel(root, text=None)
+    source_label = ctk.CTkLabel(root, text=None, fg_color=ctk.ThemeManager.theme.get('RoopDropArea').get('fg_color'))
     source_label.place(relx=0.1, rely=0.1, relwidth=0.3, relheight=0.25)
+    source_label.drop_target_register(DND_ALL)
+    source_label.dnd_bind('<<Drop>>', lambda event: select_source_path(event.data))
     if roop.globals.source_path:
         select_source_path(roop.globals.source_path)
 
-    target_label = ctk.CTkLabel(root, text=None)
+    target_label = ctk.CTkLabel(root, text=None, fg_color=ctk.ThemeManager.theme.get('RoopDropArea').get('fg_color'))
     target_label.place(relx=0.6, rely=0.1, relwidth=0.3, relheight=0.25)
+    target_label.drop_target_register(DND_ALL)
+    target_label.dnd_bind('<<Drop>>', lambda event: select_target_path(event.data))
     if roop.globals.target_path:
         select_target_path(roop.globals.target_path)
 
@@ -113,7 +125,6 @@ def create_preview(parent: ctk.CTkToplevel) -> ctk.CTkToplevel:
 
     preview = ctk.CTkToplevel(parent)
     preview.withdraw()
-    preview.title('Preview')
     preview.configure()
     preview.protocol('WM_DELETE_WINDOW', lambda: toggle_preview())
     preview.resizable(width=False, height=False)
@@ -125,8 +136,6 @@ def create_preview(parent: ctk.CTkToplevel) -> ctk.CTkToplevel:
 
     preview.bind('<Up>', lambda event: update_face_reference(1))
     preview.bind('<Down>', lambda event: update_face_reference(-1))
-    preview.bind('<Right>', lambda event: update_frame(10))
-    preview.bind('<Left>', lambda event: update_frame(-10))
     return preview
 
 
@@ -213,6 +222,8 @@ def render_video_preview(video_path: str, size: Tuple[int, int], frame_number: i
 
 def toggle_preview() -> None:
     if PREVIEW.state() == 'normal':
+        PREVIEW.unbind('<Right>')
+        PREVIEW.unbind('<Left>')
         PREVIEW.withdraw()
         clear_predictor()
     elif roop.globals.source_path and roop.globals.target_path:
@@ -222,10 +233,15 @@ def toggle_preview() -> None:
 
 
 def init_preview() -> None:
+    PREVIEW.title('Preview [ ↕ Reference face ]')
     if is_image(roop.globals.target_path):
         preview_slider.pack_forget()
     if is_video(roop.globals.target_path):
         video_frame_total = get_video_frame_total(roop.globals.target_path)
+        if video_frame_total > 0:
+            PREVIEW.title('Preview [ ↕ Reference face ] [ ↔ Frame number ]')
+            PREVIEW.bind('<Right>', lambda event: update_frame(int(video_frame_total / 20)))
+            PREVIEW.bind('<Left>', lambda event: update_frame(int(video_frame_total / -20)))
         preview_slider.configure(to=video_frame_total)
         preview_slider.pack(fill='x')
         preview_slider.set(roop.globals.reference_frame_number)
