@@ -13,3 +13,4 @@ __pycache__
 .vs/roop/v17/.wsuo
 *.sqlite
 .vs/slnx.sqlite
+.vs/*
