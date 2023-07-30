@@ -13,12 +13,8 @@ import platform
 import signal
 import shutil
 import argparse
-import torch
 import onnxruntime
-if not 'CUDAExecutionProvider' in onnxruntime.get_available_providers():
-    del torch
 import tensorflow
-
 import roop.globals
 import roop.metadata
 import roop.ui as ui
@@ -44,10 +40,10 @@ def parse_args() -> None:
     program.add_argument('--reference-face-position', help='position of the reference face', dest='reference_face_position', type=int, default=0)
     program.add_argument('--reference-frame-number', help='number of the reference frame', dest='reference_frame_number', type=int, default=0)
     program.add_argument('--similar-face-distance', help='face distance used for recognition', dest='similar_face_distance', type=float, default=0.85)
-    program.add_argument('--temp-frame-format', help='image format used for frame extraction', dest='temp_frame_format', default='png', choices=['jpg', 'png'])
-    program.add_argument('--temp-frame-quality', help='image quality used for frame extraction', dest='temp_frame_quality', type=int, default=0, choices=range(32), metavar='[0-31]')
-    program.add_argument('--output-video-encoder', help='encoder used for the output video', dest='output_video_encoder', default='libx264', choices=['libx264', 'libx265', 'libvpx-vp9'])
-    program.add_argument('--output-video-quality', help='quality used for the output video', dest='output_video_quality', type=int, default=18, choices=range(52), metavar='[0-51]')
+    program.add_argument('--temp-frame-format', help='image format used for frame extraction', dest='temp_frame_format', default='jpg', choices=['jpg', 'png'])
+    program.add_argument('--temp-frame-quality', help='image quality used for frame extraction', dest='temp_frame_quality', type=int, default=1, choices=range(101), metavar='[0-100]')
+    program.add_argument('--output-video-encoder', help='encoder used for the output video', dest='output_video_encoder', default='libx264', choices=['libx264', 'libx265', 'libvpx-vp9', 'h264_nvenc', 'hevc_nvenc'])
+    program.add_argument('--output-video-quality', help='quality used for the output video', dest='output_video_quality', type=int, default=35, choices=range(101), metavar='[0-100]')
     program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int)
     program.add_argument('--execution-provider', help='available execution provider (choices: cpu, ...)', dest='execution_provider', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
     program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
@@ -57,8 +53,8 @@ def parse_args() -> None:
 
     roop.globals.source_path = args.source_path
     roop.globals.target_path = args.target_path
-    roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, args.output_path)  # type: ignore
-    roop.globals.headless = roop.globals.source_path and roop.globals.target_path and roop.globals.output_path
+    roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, args.output_path)
+    roop.globals.headless = roop.globals.source_path is not None and roop.globals.target_path is not None and roop.globals.output_path is not None
     roop.globals.frame_processors = args.frame_processor
     roop.globals.keep_fps = args.keep_fps
     roop.globals.keep_frames = args.keep_frames
@@ -109,7 +105,7 @@ def limit_resources() -> None:
             memory = roop.globals.max_memory * 1024 ** 6
         if platform.system().lower() == 'windows':
             import ctypes
-            kernel32 = ctypes.windll.kernel32
+            kernel32 = ctypes.windll.kernel32  # type: ignore[attr-defined]
             kernel32.SetProcessWorkingSetSize(-1, ctypes.c_size_t(memory), ctypes.c_size_t(memory))
         else:
             import resource
