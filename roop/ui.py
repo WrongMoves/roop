@@ -6,7 +6,7 @@ from tkinterdnd2 import TkinterDnD, DND_ALL
 from typing import Any, Callable, Tuple, Optional
 import cv2
 from PIL import Image, ImageOps
-
+from pathlib import Path
 import roop.globals
 import roop.metadata
 from roop.face_analyser import get_one_face
@@ -186,11 +186,13 @@ def select_target_path(target_path: Optional[str] = None) -> None:
 
 def select_output_path(start: Callable[[], None]) -> None:
     global RECENT_DIRECTORY_OUTPUT
-
+    source_name = Path(roop.globals.source_path).stem
+    target_name = Path(roop.globals.target_path).stem
+    initial_file = source_name + '_' + target_name
     if is_image(roop.globals.target_path):
-        output_path = ctk.filedialog.asksaveasfilename(title='save image output file', defaultextension='.png', initialfile='output.png', initialdir=RECENT_DIRECTORY_OUTPUT)
+        output_path = ctk.filedialog.asksaveasfilename(title='save image output file', defaultextension='.png', initialfile=initial_file+'.png', initialdir=RECENT_DIRECTORY_OUTPUT)
     elif is_video(roop.globals.target_path):
-        output_path = ctk.filedialog.asksaveasfilename(title='save video output file', defaultextension='.mp4', initialfile='output.mp4', initialdir=RECENT_DIRECTORY_OUTPUT)
+        output_path = ctk.filedialog.asksaveasfilename(title='save video output file', defaultextension='.mp4', initialfile=initial_file+'.mp4', initialdir=RECENT_DIRECTORY_OUTPUT)
     else:
         output_path = None
     if output_path:
