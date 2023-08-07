@@ -109,7 +109,7 @@ def move_temp(target_path: str, output_path: str) -> None:
 def clean_temp(target_path: str) -> None:
     temp_directory_path = get_temp_directory_path(target_path)
     parent_directory_path = os.path.dirname(temp_directory_path)
-    if not roop.globals.keep_frames and os.path.isdir(temp_directory_path):
+    if not roop.globals.keep_temp and os.path.isdir(temp_directory_path):
         shutil.rmtree(temp_directory_path)
     if os.path.exists(parent_directory_path) and not os.listdir(parent_directory_path):
         os.rmdir(parent_directory_path)
@@ -117,6 +117,10 @@ def clean_temp(target_path: str) -> None:
 
 def has_image_extension(image_path: str) -> bool:
     return image_path.lower().endswith(('png', 'jpg', 'jpeg', 'webp'))
+
+
+def has_video_extension(video_path: str) -> bool:
+    return video_path.lower().endswith(('mp4'))
 
 
 def is_image(image_path: str) -> bool:
@@ -147,3 +151,10 @@ def conditional_download(download_directory_path: str, urls: List[str]) -> None:
 
 def resolve_relative_path(path: str) -> str:
     return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
+
+
+def list_module_names(path: str) -> Optional[List[str]]:
+    if os.path.exists(path):
+        files = os.listdir(path)
+        return [Path(file).stem for file in files if not Path(file).stem.startswith('__')]
+    return None

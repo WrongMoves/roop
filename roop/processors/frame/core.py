@@ -5,13 +5,14 @@ import psutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from queue import Queue
 from types import ModuleType
-from typing import Any, List, Callable
+from typing import Any, List, Callable, Optional
 from tqdm import tqdm
 
 import roop
+from roop.utilities import list_module_names
 
 FRAME_PROCESSORS_MODULES: List[ModuleType] = []
-FRAME_PROCESSORS_INTERFACE = [
+FRAME_PROCESSORS_METHODS = [
     'pre_check',
     'pre_start',
     'process_frame',
@@ -24,12 +25,12 @@ FRAME_PROCESSORS_INTERFACE = [
 
 def load_frame_processor_module(frame_processor: str) -> Any:
     try:
-        frame_processor_module = importlib.import_module(f'roop.processors.frame.{frame_processor}')
-        for method_name in FRAME_PROCESSORS_INTERFACE:
+        frame_processor_module = importlib.import_module(f'roop.processors.frame.__modules__.{frame_processor}')
+        for method_name in FRAME_PROCESSORS_METHODS:
             if not hasattr(frame_processor_module, method_name):
                 raise NotImplementedError
     except ModuleNotFoundError:
-        sys.exit(f'Frame processor {frame_processor} not found.')
+        sys.exit(f'Frame processor {frame_processor} could be not loaded.')
     except NotImplementedError:
         sys.exit(f'Frame processor {frame_processor} not implemented correctly.')
     return frame_processor_module
@@ -43,6 +44,16 @@ def get_frame_processors_modules(frame_processors: List[str]) -> List[ModuleType
             frame_processor_module = load_frame_processor_module(frame_processor)
             FRAME_PROCESSORS_MODULES.append(frame_processor_module)
     return FRAME_PROCESSORS_MODULES
+
+
+def clear_frame_processors_modules() -> None:
+    global FRAME_PROCESSORS_MODULES
+
+    FRAME_PROCESSORS_MODULES = []
+
+
+def list_frame_processors_names() -> Optional[List[str]]:
+    return list_module_names('roop/processors/frame/__modules__')
 
 
 def multi_process_frame(source_path: str, temp_frame_paths: List[str], process_frames: Callable[[str, List[str], Any], None], update: Callable[[], None]) -> None:
@@ -89,3 +100,11 @@ def update_progress(progress: Any = None) -> None:
     })
     progress.refresh()
     progress.update(1)
+
+
+def get_device() -> str:
+    if 'CUDAExecutionProvider' in roop.globals.execution_providers:
+        return 'cuda'
+    if 'CoreMLExecutionProvider' in roop.globals.execution_providers:
+        return 'mps'
+    return 'cpu'

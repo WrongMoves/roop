@@ -4,7 +4,7 @@ import threading
 from gfpgan.utils import GFPGANer
 
 import roop.globals
-import roop.processors.frame.core
+import roop.processors.frame.core as frame_processors
 from roop.core import update_status
 from roop.face_analyser import get_many_faces
 from roop.typing import Frame, Face
@@ -13,7 +13,7 @@ from roop.utilities import conditional_download, resolve_relative_path, is_image
 FACE_ENHANCER = None
 THREAD_SEMAPHORE = threading.Semaphore()
 THREAD_LOCK = threading.Lock()
-NAME = 'ROOP.FACE-ENHANCER'
+NAME = 'ROOP.PROCESSORS.FRAME.FACE_ENHANCER'
 
 
 def get_face_enhancer() -> Any:
@@ -23,16 +23,12 @@ def get_face_enhancer() -> Any:
         if FACE_ENHANCER is None:
             model_path = resolve_relative_path('../models/GFPGANv1.4.pth')
             # todo: set models path -> https://github.com/TencentARC/GFPGAN/issues/399
-            FACE_ENHANCER = GFPGANer(model_path=model_path, upscale=1, device=get_device())
+            FACE_ENHANCER = GFPGANer(
+                model_path=model_path,
+                upscale=1,
+                device=frame_processors.get_device()
+            )
     return FACE_ENHANCER
-
-
-def get_device() -> str:
-    if 'CUDAExecutionProvider' in roop.globals.execution_providers:
-        return 'cuda'
-    if 'CoreMLExecutionProvider' in roop.globals.execution_providers:
-        return 'mps'
-    return 'cpu'
 
 
 def clear_face_enhancer() -> None:
@@ -66,14 +62,14 @@ def enhance_face(target_face: Face, temp_frame: Frame) -> Frame:
     start_y = max(0, start_y - padding_y)
     end_x = max(0, end_x + padding_x)
     end_y = max(0, end_y + padding_y)
-    temp_face = temp_frame[start_y:end_y, start_x:end_x]
-    if temp_face.size:
+    crop_frame = temp_frame[start_y:end_y, start_x:end_x]
+    if crop_frame.size:
         with THREAD_SEMAPHORE:
-            _, _, temp_face = get_face_enhancer().enhance(
-                temp_face,
+            _, _, crop_frame = get_face_enhancer().enhance(
+                crop_frame,
                 paste_back=True
             )
-        temp_frame[start_y:end_y, start_x:end_x] = temp_face
+        temp_frame[start_y:end_y, start_x:end_x] = crop_frame
     return temp_frame
 
 
@@ -88,16 +84,16 @@ def process_frame(source_face: Face, reference_face: Face, temp_frame: Frame) ->
 def process_frames(source_path: str, temp_frame_paths: List[str], update: Callable[[], None]) -> None:
     for temp_frame_path in temp_frame_paths:
         temp_frame = cv2.imread(temp_frame_path)
-        result = process_frame(None, None, temp_frame)
-        cv2.imwrite(temp_frame_path, result)
+        result_frame = process_frame(None, None, temp_frame)
+        cv2.imwrite(temp_frame_path, result_frame)
         if update:
             update()
 
 
 def process_image(source_path: str, target_path: str, output_path: str) -> None:
     target_frame = cv2.imread(target_path)
-    result = process_frame(None, None, target_frame)
-    cv2.imwrite(output_path, result)
+    result_frame = process_frame(None, None, target_frame)
+    cv2.imwrite(output_path, result_frame)
 
 
 def process_video(source_path: str, temp_frame_paths: List[str]) -> None:
