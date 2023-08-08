@@ -14,3 +14,4 @@ __pycache__
 *.sqlite
 .vs/slnx.sqlite
 .vs/*
+*.sqlite
