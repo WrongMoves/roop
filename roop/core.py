@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
 
 import os
-import sys
-# single thread doubles cuda performance - needs to be set before torch import
-if any(arg.startswith('--execution-providers') for arg in sys.argv):
-    os.environ['OMP_NUM_THREADS'] = '1'
+# single thread doubles cuda performance
+os.environ['OMP_NUM_THREADS'] = '1'
 # reduce tensorflow log level
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import sys
 import warnings
 from typing import List
 import platform
@@ -46,7 +45,8 @@ def parse_args() -> None:
     program.add_argument('--output-video-quality', help='quality used for the output video', dest='output_video_quality', type=int, default=35, choices=range(101), metavar='[0-100]')
     program.add_argument('--max-memory', help='maximum amount of RAM in GB', dest='max_memory', type=int, default=16)
     program.add_argument('--execution-providers', help='list of available execution providers (choices: cpu, ...)', dest='execution_providers', default=['cpu'], choices=suggest_execution_providers(), nargs='+')
-    program.add_argument('--execution-threads', help='number of execution threads', dest='execution_threads', type=int, default=suggest_execution_threads())
+    program.add_argument('--execution-thread-count', help='number of execution threads', dest='execution_thread_count', type=int, default=suggest_execution_thread_count())
+    program.add_argument('--execution-queue-count', help='number of execution queries', dest='execution_queue_count', type=int,  default=1)
     program.add_argument('-v', '--version', action='version', version=f'{roop.metadata.name} {roop.metadata.version}')
 
     args = program.parse_args()
@@ -70,7 +70,8 @@ def parse_args() -> None:
     roop.globals.output_video_quality = args.output_video_quality
     roop.globals.max_memory = args.max_memory
     roop.globals.execution_providers = decode_execution_providers(args.execution_providers)
-    roop.globals.execution_threads = args.execution_threads
+    roop.globals.execution_thread_count = args.execution_thread_count
+    roop.globals.execution_queue_count = args.execution_queue_count
 
 
 def encode_execution_providers(execution_providers: List[str]) -> List[str]:
@@ -90,7 +91,7 @@ def suggest_ui_layouts() -> List[str]:
     return list_module_names('roop/uis/__layouts__')
 
 
-def suggest_execution_threads() -> int:
+def suggest_execution_thread_count() -> int:
     if 'CUDAExecutionProvider' in onnxruntime.get_available_providers():
         return 4
     return 1

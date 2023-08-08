@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, Dict, Any
 import gradio
 
 Component = gradio.File or gradio.Image or gradio.Video or gradio.Slider
@@ -11,3 +11,4 @@ ComponentName = Literal[
     'frame_processors_checkbox_group',
     'many_faces_checkbox'
 ]
+Update = Dict[Any, Any]

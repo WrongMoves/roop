@@ -19,5 +19,6 @@ output_video_encoder: Optional[str] = None
 output_video_quality: Optional[int] = None
 max_memory: Optional[int] = None
 execution_providers: List[str] = []
-execution_threads: Optional[int] = None
+execution_thread_count: Optional[int] = None
+execution_queue_count: Optional[int] = None
 log_level: str = 'error'

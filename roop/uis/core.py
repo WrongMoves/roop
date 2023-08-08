@@ -6,6 +6,7 @@ import cv2
 import gradio
 
 import roop.globals
+import roop.metadata
 from roop.typing import Frame
 from roop.uis.typing import Component, ComponentName
 from roop.utilities import list_module_names
@@ -18,7 +19,7 @@ UI_LAYOUT_METHODS = [
 
 
 def init() -> None:
-    with gradio.Blocks(theme=get_theme()) as ui:
+    with gradio.Blocks(theme=get_theme(), title=roop.metadata.name) as ui:
         for ui_layout in roop.globals.ui_layouts:
             ui_layout_module = load_ui_layout_module(ui_layout)
             ui_layout_module.render()

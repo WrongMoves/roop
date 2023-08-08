@@ -1,9 +1,10 @@
-from typing import Any, Dict, IO, Tuple, Optional
+from typing import Any, IO, Tuple, Optional
 import gradio
 
 import roop.globals
 from roop.face_reference import clear_face_reference
 from roop.uis import core as ui
+from roop.uis.typing import Update
 from roop.utilities import is_image, is_video
 
 TARGET_FILE: Optional[gradio.File] = None
@@ -42,7 +43,7 @@ def listen() -> None:
     TARGET_FILE.change(update, inputs=TARGET_FILE, outputs=[TARGET_IMAGE, TARGET_VIDEO])
 
 
-def update(file: IO[Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def update(file: IO[Any]) -> Tuple[Update, Update]:
     clear_face_reference()
     if file and is_image(file.name):
         roop.globals.target_path = file.name

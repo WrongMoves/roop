@@ -1,8 +1,9 @@
-from typing import Any, Dict, IO, Optional
+from typing import Any, IO, Optional
 import gradio
 
 import roop.globals
 from roop.uis import core as ui
+from roop.uis.typing import Update
 from roop.utilities import is_image
 
 SOURCE_FILE: Optional[gradio.File] = None
@@ -33,7 +34,7 @@ def listen() -> None:
     SOURCE_FILE.change(update, inputs=SOURCE_FILE, outputs=SOURCE_IMAGE)
 
 
-def update(file: IO[Any]) -> Dict[str, Any]:
+def update(file: IO[Any]) -> Update:
     if file and is_image(file.name):
         roop.globals.source_path = file.name
         return gradio.update(value=file.name, visible=True)

@@ -57,10 +57,10 @@ def list_frame_processors_names() -> Optional[List[str]]:
 
 
 def multi_process_frame(source_path: str, temp_frame_paths: List[str], process_frames: Callable[[str, List[str], Any], None], update: Callable[[], None]) -> None:
-    with ThreadPoolExecutor(max_workers=roop.globals.execution_threads) as executor:
+    with ThreadPoolExecutor(max_workers=roop.globals.execution_thread_count) as executor:
         futures = []
         queue = create_queue(temp_frame_paths)
-        queue_per_future = max(len(temp_frame_paths) // roop.globals.execution_threads, 1)
+        queue_per_future = max(len(temp_frame_paths) // roop.globals.execution_thread_count, 1) * roop.globals.execution_queue_count
         while not queue.empty():
             future = executor.submit(process_frames, source_path, pick_queue(queue, queue_per_future), update)
             futures.append(future)
@@ -96,7 +96,8 @@ def update_progress(progress: Any = None) -> None:
     progress.set_postfix({
         'memory_usage': '{:.2f}'.format(memory_usage).zfill(5) + 'GB',
         'execution_providers': roop.globals.execution_providers,
-        'execution_threads': roop.globals.execution_threads
+        'execution_thread_count': roop.globals.execution_thread_count,
+        'execution_queue_count': roop.globals.execution_queue_count
     })
     progress.refresh()
     progress.update(1)

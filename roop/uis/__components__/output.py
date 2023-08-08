@@ -1,8 +1,9 @@
-from typing import Any, Dict, Tuple, Optional
+from typing import Tuple, Optional
 import gradio
 
 import roop.globals
 from roop.core import start
+from roop.uis.typing import Update
 from roop.utilities import has_image_extension, has_video_extension, normalize_output_path
 
 
@@ -31,7 +32,7 @@ def listen() -> None:
     CLEAR_BUTTON.click(clear, outputs=[OUTPUT_IMAGE, OUTPUT_VIDEO])
 
 
-def update() -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def update() -> Tuple[Update, Update]:
     roop.globals.output_path = normalize_output_path(roop.globals.source_path, roop.globals.target_path, '..')
     if roop.globals.output_path:
         start()
@@ -42,5 +43,5 @@ def update() -> Tuple[Dict[str, Any], Dict[str, Any]]:
     return gradio.update(value=None, visible=False), gradio.update(value=None, visible=False)
 
 
-def clear() -> Tuple[Dict[str, Any], Dict[str, Any]]:
+def clear() -> Tuple[Update, Update]:
     return gradio.update(value=None, visible=False), gradio.update(value=None, visible=False)

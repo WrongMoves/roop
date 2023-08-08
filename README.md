@@ -47,9 +47,11 @@ python run.py [options]
 --output-video-encoder {libx264,libx265,libvpx-vp9,h264_nvenc,hevc_nvenc}  encoder used for the output video
 --output-video-quality [0-100]                                             quality used for the output video
 --max-memory MAX_MEMORY                                                    maximum amount of RAM in GB
---execution-providers {tensorrt,cuda,cpu} [{tensorrt,cuda,cpu} ...]        list of available execution providers (choices: cpu, ...)
---execution-threads EXECUTION_THREADS                                      number of execution threads
+--execution-providers {cpu} [{cpu} ...]                                    list of available execution providers (choices: cpu, ...)
+--execution-thread-count EXECUTION_THREAD_COUNT                            number of execution threads
+--execution-queue-count EXECUTION_QUEUE_COUNT                              number of execution queries
 -v, --version                                                              show program's version number and exit
+
 ```
 
 

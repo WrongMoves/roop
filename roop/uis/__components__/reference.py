@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Optional
+from typing import List, Optional
 from time import sleep
 
 import cv2
@@ -9,7 +9,7 @@ from roop.capturer import get_video_frame
 from roop.face_analyser import get_faces_total
 from roop.face_reference import clear_face_reference
 from roop.uis import core as ui
-from roop.uis.typing import ComponentName
+from roop.uis.typing import ComponentName, Update
 from roop.utilities import is_image, is_video
 
 REFERENCE_FACE_POSITION_SLIDER: Optional[gradio.Slider] = None
@@ -57,12 +57,12 @@ def listen() -> None:
     REFERENCE_FACE_POSITION_SLIDER.change(clear_and_update_face_reference_position, inputs=REFERENCE_FACE_POSITION_SLIDER)
 
 
-def clear_and_update_face_reference_position(reference_face_position: int) -> Dict[Any, Any]:
+def clear_and_update_face_reference_position(reference_face_position: int) -> Update:
     clear_face_reference()
     return update_face_reference_position(reference_face_position)
 
 
-def update_face_reference_position(reference_face_position: int) -> Dict[Any, Any]:
+def update_face_reference_position(reference_face_position: int) -> Update:
     sleep(0.5)
     maximum = 0
     roop.globals.reference_face_position = reference_face_position
@@ -75,6 +75,6 @@ def update_face_reference_position(reference_face_position: int) -> Dict[Any, An
     return gradio.update(value=reference_face_position, maximum=maximum)
 
 
-def update_similar_face_distance(similar_face_distance: float) -> Dict[Any, Any]:
+def update_similar_face_distance(similar_face_distance: float) -> Update:
     roop.globals.similar_face_distance = similar_face_distance
     return gradio.update(value=similar_face_distance)

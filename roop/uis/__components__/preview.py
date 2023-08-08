@@ -12,7 +12,7 @@ from roop.predictor import predict_frame
 from roop.processors.frame.core import load_frame_processor_module
 from roop.typing import Frame
 from roop.uis import core as ui
-from roop.uis.typing import ComponentName
+from roop.uis.typing import ComponentName, Update
 from roop.utilities import is_video, is_image
 
 PREVIEW_IMAGE: Optional[gradio.Image] = None
@@ -67,7 +67,7 @@ def listen() -> None:
             component.change(update, inputs=PREVIEW_SLIDER, outputs=[PREVIEW_IMAGE, PREVIEW_SLIDER])
 
 
-def update(frame_number: int = 0) -> Tuple[Dict[Any, Any], Dict[Any, Any]]:
+def update(frame_number: int = 0) -> Tuple[Update, Update]:
     sleep(0.5)
     if is_image(roop.globals.target_path):
         temp_frame = cv2.imread(roop.globals.target_path)
