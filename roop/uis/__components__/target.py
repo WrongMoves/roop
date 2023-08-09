@@ -23,20 +23,20 @@ def render() -> None:
         TARGET_FILE = gradio.File(
             file_count='single',
             file_types=['.png', '.jpg', '.jpeg', '.webp', '.mp4'],
-            label='target_path',
+            label='TARGET',
             value=roop.globals.target_path if is_target_image or is_target_video else None
         )
-        ui.register_component('target_file', TARGET_FILE)
         TARGET_IMAGE = gradio.Image(
-            label='target_image',
             value=TARGET_FILE.value['name'] if is_target_image else None,
-            visible=is_target_image
+            visible=is_target_image,
+            show_label=False
         )
         TARGET_VIDEO = gradio.Video(
-            label='target_video',
             value=TARGET_FILE.value['name'] if is_target_video else None,
-            visible=is_target_video
+            visible=is_target_video,
+            show_label=False
         )
+        ui.register_component('target_file', TARGET_FILE)
 
 
 def listen() -> None:

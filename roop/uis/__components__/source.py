@@ -19,14 +19,14 @@ def render() -> None:
         SOURCE_FILE = gradio.File(
             file_count='single',
             file_types=['.png', '.jpg', '.jpeg', '.webp'],
-            label='source_path',
+            label='SOURCE',
             value=roop.globals.source_path if is_source_image else None
         )
         ui.register_component('source_file', SOURCE_FILE)
         SOURCE_IMAGE = gradio.Image(
-            label='source_image',
             value=SOURCE_FILE.value['name'] if is_source_image else None,
-            visible=is_source_image
+            visible=is_source_image,
+            show_label=False
         )
 
 

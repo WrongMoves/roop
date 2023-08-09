@@ -26,9 +26,8 @@ def run_ffmpeg(args: List[str]) -> bool:
     try:
         subprocess.check_output(commands, stderr=subprocess.STDOUT)
         return True
-    except Exception:
-        pass
-    return False
+    except subprocess.CalledProcessError:
+        return False
 
 
 def detect_fps(target_path: str) -> float:
@@ -37,9 +36,8 @@ def detect_fps(target_path: str) -> float:
     try:
         numerator, denominator = map(int, output)
         return numerator / denominator
-    except Exception:
-        pass
-    return 30
+    except (ValueError, ZeroDivisionError):
+        return 30
 
 
 def extract_frames(target_path: str, fps: float = 30) -> bool:

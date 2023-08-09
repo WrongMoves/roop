@@ -23,8 +23,14 @@ def render() -> None:
         with gradio.Row():
             START_BUTTON = gradio.Button('Start')
             CLEAR_BUTTON = gradio.Button('Clear')
-        OUTPUT_IMAGE = gradio.Image(label='output_image', visible=False)
-        OUTPUT_VIDEO = gradio.Video(label='output_video', visible=False)
+        OUTPUT_IMAGE = gradio.Image(
+            label='OUTPUT',
+            visible=False
+        )
+        OUTPUT_VIDEO = gradio.Video(
+            label='OUTPUT',
+            visible=False
+        )
 
 
 def listen() -> None:

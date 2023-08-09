@@ -30,26 +30,26 @@ def render() -> None:
     with gradio.Column():
         with gradio.Box():
             FRAME_PROCESSORS_CHECKBOX_GROUP = gradio.CheckboxGroup(
-                label='frame_processors',
+                label='FRAME PROCESSORS',
                 choices=sort_frame_processors(roop.globals.frame_processors),
                 value=roop.globals.frame_processors
             )
             ui.register_component('frame_processors_checkbox_group', FRAME_PROCESSORS_CHECKBOX_GROUP)
         with gradio.Box():
             EXECUTION_PROVIDERS_CHECKBOX_GROUP = gradio.CheckboxGroup(
-                label='execution_providers',
+                label='EXECUTION PROVIDERS',
                 choices=onnxruntime.get_available_providers(),
                 value=roop.globals.execution_providers
             )
             EXECUTION_THREAD_COUNT_SLIDER = gradio.Slider(
-                label='execution_thread_count',
+                label='EXECUTION THREAD COUNT',
                 value=roop.globals.execution_thread_count,
                 step=1,
                 minimum=1,
                 maximum=128
             )
             EXECUTION_QUEUE_COUNT_SLIDER = gradio.Slider(
-                label='execution_queue_count',
+                label='EXECUTION QUEUE COUNT',
                 value=roop.globals.execution_queue_count,
                 step=1,
                 minimum=1,
@@ -57,19 +57,19 @@ def render() -> None:
             )
         with gradio.Box():
             KEEP_FPS_CHECKBOX = gradio.Checkbox(
-                label='keep_fps',
+                label='KEEP FPS',
                 value=roop.globals.keep_fps
             )
             KEEP_TEMP_CHECKBOX = gradio.Checkbox(
-                label='keep_temp',
+                label='KEEP TEMP',
                 value=roop.globals.keep_fps
             )
             SKIP_AUDIO_CHECKBOX = gradio.Checkbox(
-                label='skip_audio',
+                label='SKIP AUDIO',
                 value=roop.globals.skip_audio
             )
             MANY_FACES_CHECKBOX = gradio.Checkbox(
-                label='many_faces',
+                label='MANY FACES',
                 value=roop.globals.many_faces
             )
             ui.register_component('many_faces_checkbox', MANY_FACES_CHECKBOX)
