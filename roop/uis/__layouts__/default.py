@@ -1,6 +1,6 @@
 import gradio
 
-from roop.uis.__components__ import settings, source, target, preview, reference, output
+from roop.uis.__components__ import settings, source, target, preview, trim_frame, face_selector, output
 
 
 def render() -> gradio.Blocks:
@@ -13,7 +13,8 @@ def render() -> gradio.Blocks:
                 target.render()
             with gradio.Column(scale=3):
                 preview.render()
-                reference.render()
+                trim_frame.render()
+                face_selector.render()
         with gradio.Row():
             output.render()
     return layout
@@ -24,5 +25,6 @@ def listen() -> None:
     source.listen()
     target.listen()
     preview.listen()
-    reference.listen()
+    trim_frame.listen()
+    face_selector.listen()
     output.listen()

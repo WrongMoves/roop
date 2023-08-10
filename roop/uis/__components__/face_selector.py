@@ -68,10 +68,10 @@ def update_face_reference_position(reference_face_position: int) -> Update:
     roop.globals.reference_face_position = reference_face_position
     if is_image(roop.globals.target_path):
         target_frame = cv2.imread(roop.globals.target_path)
-        maximum = get_faces_total(target_frame)
+        maximum = max(get_faces_total(target_frame) - 1, 0)
     if is_video(roop.globals.target_path):
         temp_frame = get_video_frame(roop.globals.target_path, roop.globals.reference_frame_number)
-        maximum = get_faces_total(temp_frame)
+        maximum = max(get_faces_total(temp_frame) - 1, 0)
     return gradio.update(value=reference_face_position, maximum=maximum)
 
 

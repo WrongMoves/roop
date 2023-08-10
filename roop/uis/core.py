@@ -44,7 +44,7 @@ def get_theme() -> gradio.Theme:
     return gradio.themes.Soft(
         primary_hue=gradio.themes.colors.red,
         secondary_hue=gradio.themes.colors.gray,
-        font=gradio.themes.GoogleFont('Open Sans')
+        font=gradio.themes.GoogleFont('Inter')
     )
 
 

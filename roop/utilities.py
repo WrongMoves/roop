@@ -43,7 +43,19 @@ def detect_fps(target_path: str) -> float:
 def extract_frames(target_path: str, fps: float = 30) -> bool:
     temp_directory_path = get_temp_directory_path(target_path)
     temp_frame_quality = roop.globals.temp_frame_quality * 31 // 100
-    return run_ffmpeg(['-hwaccel', 'auto', '-i', target_path, '-q:v', str(temp_frame_quality), '-pix_fmt', 'rgb24', '-vf', 'fps=' + str(fps), os.path.join(temp_directory_path, '%04d.' + roop.globals.temp_frame_format)])
+    trim_frame_start = roop.globals.trim_frame_start
+    trim_frame_end = roop.globals.trim_frame_end
+    commands = ['-hwaccel', 'auto', '-i', target_path, '-q:v', str(temp_frame_quality), '-pix_fmt', 'rgb24']
+    if trim_frame_start is not None and trim_frame_end is not None:
+        commands.extend(['-vf', f'trim=start_frame={trim_frame_start}:end_frame={trim_frame_end},fps={fps}'])
+    elif trim_frame_start is not None:
+        commands.extend(['-vf', f'trim=start_frame={trim_frame_start},fps={fps}'])
+    elif trim_frame_end is not None:
+        commands.extend(['-vf', f'trim=end_frame={trim_frame_end},fps={fps}'])
+    else:
+        commands.extend(['-vf', f'fps={fps}'])
+    commands.extend([os.path.join(temp_directory_path, '%04d.' + roop.globals.temp_frame_format)])
+    return run_ffmpeg(commands)
 
 
 def create_video(target_path: str, fps: float = 30) -> bool:

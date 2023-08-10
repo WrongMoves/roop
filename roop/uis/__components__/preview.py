@@ -70,14 +70,14 @@ def update(frame_number: int = 0) -> Tuple[Update, Update]:
     if is_image(roop.globals.target_path):
         target_frame = cv2.imread(roop.globals.target_path)
         preview_frame = get_preview_frame(target_frame)
-        return gradio.update(value=ui.normalize_frame(preview_frame)), gradio.update(value=0, maximum=1, visible=False)
+        return gradio.update(value=ui.normalize_frame(preview_frame)), gradio.update(value=None, maximum=None, visible=False)
     if is_video(roop.globals.target_path):
         roop.globals.reference_frame_number = frame_number
         video_frame_total = get_video_frame_total(roop.globals.target_path)
         temp_frame = get_video_frame(roop.globals.target_path, roop.globals.reference_frame_number)
         preview_frame = get_preview_frame(temp_frame)
         return gradio.update(value=ui.normalize_frame(preview_frame)), gradio.update(maximum=video_frame_total, visible=True)
-    return gradio.update(value=None), gradio.update(value=0, maximum=1, visible=False)
+    return gradio.update(value=None), gradio.update(value=None, maximum=None, visible=False)
 
 
 def get_preview_frame(temp_frame: Frame) -> Frame:

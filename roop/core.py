@@ -38,7 +38,9 @@ def parse_args() -> None:
     program.add_argument('--many-faces', help='process every face', dest='many_faces', action='store_true')
     program.add_argument('--reference-face-position', help='position of the reference face', dest='reference_face_position', type=int, default=0)
     program.add_argument('--reference-frame-number', help='number of the reference frame', dest='reference_frame_number', type=int, default=0)
-    program.add_argument('--similar-face-distance', help='face distance used for recognition', dest='similar_face_distance', type=float, default=1.25)
+    program.add_argument('--similar-face-distance', help='face distance used for recognition', dest='similar_face_distance', type=float, default=0.85)
+    program.add_argument('--trim-frame-start', help='start frame use for extraction', dest='trim_frame_start', type=int)
+    program.add_argument('--trim-frame-end', help='end frame use for extraction', dest='trim_frame_end', type=int)
     program.add_argument('--temp-frame-format', help='image format used for frame extraction', dest='temp_frame_format', default='jpg', choices=['jpg', 'png'])
     program.add_argument('--temp-frame-quality', help='image quality used for frame extraction', dest='temp_frame_quality', type=int, default=1, choices=range(101), metavar='[0-100]')
     program.add_argument('--output-video-encoder', help='encoder used for the output video', dest='output_video_encoder', default='libx264', choices=['libx264', 'libx265', 'libvpx-vp9', 'h264_nvenc', 'hevc_nvenc'])
@@ -64,6 +66,8 @@ def parse_args() -> None:
     roop.globals.reference_face_position = args.reference_face_position
     roop.globals.reference_frame_number = args.reference_frame_number
     roop.globals.similar_face_distance = args.similar_face_distance
+    roop.globals.trim_frame_start = args.trim_frame_start
+    roop.globals.trim_frame_end = args.trim_frame_end
     roop.globals.temp_frame_format = args.temp_frame_format
     roop.globals.temp_frame_quality = args.temp_frame_quality
     roop.globals.output_video_encoder = args.output_video_encoder
