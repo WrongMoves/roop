@@ -167,7 +167,6 @@ def start() -> None:
         extract_frames(roop.globals.target_path)
     # process frame
     temp_frame_paths = get_temp_frame_paths(roop.globals.target_path)
-    update_status(f'Temp files stored in..{temp_frame_paths}')
     if temp_frame_paths:
         for frame_processor_module in get_frame_processors_modules(roop.globals.frame_processors):
             update_status('Progressing...', frame_processor_module.NAME)
