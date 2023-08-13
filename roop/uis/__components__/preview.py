@@ -34,11 +34,11 @@ def render() -> None:
         }
         if is_image(roop.globals.target_path):
             target_frame = cv2.imread(roop.globals.target_path)
-            preview_frame = get_preview_frame(target_frame)
+            preview_frame = extract_preview_frame(target_frame)
             preview_image_args['value'] = ui.normalize_frame(preview_frame)
         if is_video(roop.globals.target_path):
             temp_frame = get_video_frame(roop.globals.target_path, roop.globals.reference_frame_number)
-            preview_frame = get_preview_frame(temp_frame)
+            preview_frame = extract_preview_frame(temp_frame)
             preview_image_args['value'] = ui.normalize_frame(preview_frame)
             preview_image_args['visible'] = True
             preview_frame_slider_args['value'] = roop.globals.reference_frame_number
@@ -51,44 +51,53 @@ def render() -> None:
 
 def listen() -> None:
     PREVIEW_FRAME_SLIDER.change(update, inputs=PREVIEW_FRAME_SLIDER, outputs=[PREVIEW_IMAGE, PREVIEW_FRAME_SLIDER])
-    component_names: List[ComponentName] = [
+    update_component_names: List[ComponentName] = [
         'source_file',
         'target_file',
-        'reference_face_position_slider',
-        'similar_face_distance_slider',
-        'frame_processors_checkbox_group',
-        'many_faces_checkbox'
+        'face_recognition_dropdown',
+        'reference_face_distance_slider',
+        'frame_processors_checkbox_group'
     ]
-    for component_name in component_names:
+    for component_name in update_component_names:
         component = ui.get_component(component_name)
         if component:
             component.change(update, inputs=PREVIEW_FRAME_SLIDER, outputs=[PREVIEW_IMAGE, PREVIEW_FRAME_SLIDER])
+    select_component_names: List[ComponentName] = [
+        'reference_face_position_gallery',
+        'face_analyser_direction_dropdown',
+        'face_analyser_age_dropdown',
+        'face_analyser_gender_dropdown'
+    ]
+    for component_name in select_component_names:
+        component = ui.get_component(component_name)
+        if component:
+            component.select(update, inputs=PREVIEW_FRAME_SLIDER, outputs=[PREVIEW_IMAGE, PREVIEW_FRAME_SLIDER])
 
 
 def update(frame_number: int = 0) -> Tuple[Update, Update]:
-    sleep(0.5)
+    sleep(0.1)
     if is_image(roop.globals.target_path):
         target_frame = cv2.imread(roop.globals.target_path)
-        preview_frame = get_preview_frame(target_frame)
+        preview_frame = extract_preview_frame(target_frame)
         return gradio.update(value=ui.normalize_frame(preview_frame)), gradio.update(value=None, maximum=None, visible=False)
     if is_video(roop.globals.target_path):
         roop.globals.reference_frame_number = frame_number
         video_frame_total = get_video_frame_total(roop.globals.target_path)
         temp_frame = get_video_frame(roop.globals.target_path, roop.globals.reference_frame_number)
-        preview_frame = get_preview_frame(temp_frame)
+        preview_frame = extract_preview_frame(temp_frame)
         return gradio.update(value=ui.normalize_frame(preview_frame)), gradio.update(maximum=video_frame_total, visible=True)
     return gradio.update(value=None), gradio.update(value=None, maximum=None, visible=False)
 
 
-def get_preview_frame(temp_frame: Frame) -> Frame:
+def extract_preview_frame(temp_frame: Frame) -> Frame:
     if predict_frame(temp_frame):
         destroy()
     source_face = get_one_face(cv2.imread(roop.globals.source_path)) if roop.globals.source_path else None
-    if not roop.globals.many_faces and not get_face_reference():
+    if 'reference' in roop.globals.face_recognition and not get_face_reference():
         reference_frame = get_video_frame(roop.globals.target_path, roop.globals.reference_frame_number)
         reference_face = get_one_face(reference_frame, roop.globals.reference_face_position)
         set_face_reference(reference_face)
-    reference_face = get_face_reference() if not roop.globals.many_faces else None
+    reference_face = get_face_reference() if 'reference' in roop.globals.face_recognition else None
     for frame_processor in roop.globals.frame_processors:
         frame_processor_module = load_frame_processor_module(frame_processor)
         if frame_processor_module.pre_start():
