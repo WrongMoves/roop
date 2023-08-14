@@ -32,7 +32,7 @@ def parse_args() -> None:
     program.add_argument('-s', '--source', help='select an source image', dest='source_path')
     program.add_argument('-t', '--target', help='select an target image or video', dest='target_path')
     program.add_argument('-o', '--output', help='select output file or directory', dest='output_path')
-    program.add_argument('--frame-processors', help='list of available frame processors (choices: face_swapper, face_enhancer, frame_enhancer, ...)', dest='frame_processors', default=['face_swapper face_enhancer'], nargs='+')
+    program.add_argument('--frame-processors', help='list of available frame processors (choices: face_swapper, face_enhancer, frame_enhancer, ...)', dest='frame_processors', default=['face_swapper', 'face_enhancer'], nargs='+')
     program.add_argument('--ui-layouts', help='list of available ui layouts (choices: default, ...)', dest='ui_layouts', default=['default'], nargs='+')
     program.add_argument('--keep-fps', help='keep target fps', dest='keep_fps', action='store_true', default=True)
     program.add_argument('--keep-temp', help='keep temporary frames', dest='keep_temp', action='store_true', default=False)
