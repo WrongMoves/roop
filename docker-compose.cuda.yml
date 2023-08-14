@@ -1,0 +1,16 @@
+services:
+ roop-cuda:
+  build:
+   dockerfile: Dockerfile.cuda
+  command: ['python', 'run.py', '--execution-providers', 'cuda']
+  volumes:
+  - ./models:/roop/models
+  ports:
+  - 8000:7860
+  deploy:
+   resources:
+    reservations:
+     devices:
+     - driver: nvidia
+       count: -1
+       capabilities: [gpu, video]
